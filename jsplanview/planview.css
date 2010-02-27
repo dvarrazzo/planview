@@ -1,0 +1,64 @@
+/*
+ * planview -- Query Plan Visualizer
+ * Copyright (C) 2010  Daniele Varrazzo
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+body {
+  overflow-y: scroll;
+}
+
+#output-area {
+  position: relative;
+  background-color: #be0;
+  border: 1px solid black;
+  height: auto;
+  padding: 5px 15px;
+  font-family: arial,sans-serif;
+}
+
+#output-area h2 {
+  margin: 0.25em 1em;
+}
+
+div.bar-chart {
+  position: relative;
+}
+
+div.svg {
+  position: absolute;
+  top: 0;
+  left: -15;
+}
+
+div.bar {
+  position: absolute;
+  background-color: #44f;
+  border: 1px solid #00f;
+  white-space: nowrap;
+}
+
+div.label-ctr {
+  position: absolute;
+  white-space: nowrap;
+  text-align: right;
+}
+
+span.label {
+  margin: 0 20px;
+  font-family: arial,sans-serif;
+  font-size: 80%;
+}
+

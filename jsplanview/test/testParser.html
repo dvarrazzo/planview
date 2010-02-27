@@ -1,0 +1,114 @@
+<!--
+ * planview - Query Plan Visualizer
+ * Copyright (C) 2010  Daniele Varrazzo
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<html>
+  <head>
+    <title>Javascript Query Plan Visualizer Unit Test</title>
+    <link rel="stylesheet" href="http://github.com/jquery/qunit/raw/master/qunit/qunit.css" type="text/css" media="screen" />
+    <script src="http://code.jquery.com/jquery-latest.js" type="text/javascript"></script>
+    <script src="http://github.com/jquery/qunit/raw/master/qunit/qunit.js" type="text/javascript"></script>
+
+    <script language="javascript" src="../planview.js"></script>
+
+    <script>
+      $(document).ready(function(){
+
+        module("Parser");
+
+        var plan1 =
+"Subquery Scan \"*SELECT*\"  (cost=3998159.58..4017423.33 rows=19757 width=1688) (actual time=2252714.704..2291343.377 rows=9629 loops=1)\n" +
+"  ->  GroupAggregate  (cost=3998159.58..4012977.85 rows=19757 width=85) (actual time=2252714.678..2290892.551 rows=9629 loops=1)\n" +
+"        ->  Sort  (cost=3998159.58..3998653.52 rows=19757 width=85) (actual time=2252684.805..2284428.488 rows=158017 loops=1)\n" +
+"              Sort Key: e.event_date, e.home_id, a.kudos_from, a.kudos_to, a.system, a.username, t.ccy_code\n" +
+"              Sort Method:  external merge  Disk: 171328kB\n" +
+"              ->  Hash Join  (cost=218982.50..3971323.65 rows=19757 width=85) (actual time=159931.273..2203014.755 rows=158017 loops=1)\n" +
+"                    Hash Cond: (t.account_id = a.id)\n" +
+"                    ->  Hash Join  (cost=218671.23..3968048.72 rows=19757 width=59) (actual time=159926.340..2200570.261 rows=158017 loops=1)\n" +
+"                          Hash Cond: (t.group_id = g.id)\n" +
+"                          ->  Hash Join  (cost=939.39..3716182.31 rows=19757 width=52) (actual time=3364.245..1968620.673 rows=158017 loops=1)\n" +
+"                                Hash Cond: (t.team_event_id = e.id)\n" +
+"                                ->  Seq Scan on tickets t  (cost=0.00..3653847.12 rows=679086 width=44) (actual time=652.717..1951066.096 rows=2189306 loops=1)\n" +
+"                                      Filter: (is_settled AND ((status)::text = 'done'::text))\n" +
+"                                ->  Hash  (cost=874.00..874.00 rows=5231 width=16) (actual time=1068.332..1068.332 rows=6603 loops=1)\n" +
+"                                      ->  Index Scan using ifbevent_x4 on team_event e  (cost=0.00..874.00 rows=5231 width=16) (actual time=136.018..1063.224 rows=6603 loops=1)\n" +
+"                                            Index Cond: ((event_date >= '2010-01-16 00:00:00'::timestamp without time zone) AND (event_date <= '2010-02-15 00:00:00'::timestamp without time zone))\n" +
+"                          ->  Hash  (cost=123143.04..123143.04 rows=5441504 width=15) (actual time=149712.458..149712.458 rows=5441504 loops=1)\n" +
+"                                ->  Seq Scan on groups g  (cost=0.00..123143.04 rows=5441504 width=15) (actual time=0.018..144001.818 rows=5441504 loops=1)\n" +
+"                    ->  Hash  (cost=285.01..285.01 rows=2101 width=34) (actual time=4.912..4.912 rows=2101 loops=1)\n" +
+"                          ->  Seq Scan on accounts a  (cost=0.00..285.01 rows=2101 width=34) (actual time=0.012..3.144 rows=2101 loops=1)\n" +
+"                                Filter: (kudos_to IS NOT NULL)" ;
+
+        var node1 = planview.parsePlan(plan1);
+        test("Parsing textual plan", function() {
+          equal(node1.label, 'Subquery Scan "*SELECT*"', "node label");
+          equal(node1.children.length, 1, "children no.");
+          equal(node1.planned.start, 3998159.58, "planned start");
+          equal(node1.planned.end, 4017423.33, "planned end");
+          equal(node1.planned.rows, 19757, "planned rows");
+          equal(node1.executed.start, 2252714.704, "executed start");
+          equal(node1.executed.end, 2291343.377, "executed end");
+          equal(node1.executed.rows, 9629, "executed rows");
+        });
+
+        // quoted as per pgadmin output
+        // contains "never executed" nodes
+        var plan2 =
+"\"Nested Loop  (cost=37.68..904.95 rows=2 width=345) (actual time=0.368..0.368 rows=0 loops=1)\"\n" +
+"\"  ->  Nested Loop  (cost=37.68..883.87 rows=7 width=356) (actual time=0.367..0.367 rows=0 loops=1)\"\n" +
+"\"        ->  Nested Loop  (cost=32.42..478.18 rows=1 width=368) (actual time=0.366..0.366 rows=0 loops=1)\"\n" +
+"\"              ->  Nested Loop  (cost=32.42..457.10 rows=7 width=379) (actual time=0.365..0.365 rows=0 loops=1)\"\n" +
+"\"                    ->  Bitmap Heap Scan on cosi_coso  (cost=27.16..31.21 rows=1 width=345) (actual time=0.364..0.364 rows=0 loops=1)\"\n" +
+"\"                          Recheck Cond: (((ateco_id)::text = 'G5143'::text) AND ((settore_merceologico_id)::text = 'abb'::text))\"\n" +
+"\"                          Filter: (((stato)::text = ANY ('{vivo,morto}'::text[])) AND ((ragione_sociale)::text = 'Ferrari'::text) AND ((associazione)::text = ANY ('{foo,bar,qux-quux}'::text[])) AND ((classe_fatturato)::text = ANY ('{A,B,C,D,E}'::text[])) AND ((provincia)::text = ANY ('{BG,BS,CO,CR,LC,LO,MN,MI,MB,PV,SO,VA}'::text[])))\"\n" +
+"\"                          ->  BitmapAnd  (cost=27.16..27.16 rows=1 width=0) (actual time=0.362..0.362 rows=0 loops=1)\"\n" +
+"\"                                ->  Bitmap Index Scan on cosi_coso_ateco_id  (cost=0.00..8.90 rows=81 width=0) (actual time=0.150..0.150 rows=305 loops=1)\"\n" +
+"\"                                      Index Cond: ((ateco_id)::text = 'G5143'::text)\"\n" +
+"\"                                ->  Bitmap Index Scan on cosi_coso_settore_merceologico_id  (cost=0.00..18.02 rows=230 width=0) (actual time=0.147..0.147 rows=395 loops=1)\"\n" +
+"\"                                      Index Cond: ((settore_merceologico_id)::text = 'abb'::text)\"\n" +
+"\"                    ->  Bitmap Heap Scan on cosi_codicicosi t6  (cost=5.26..424.42 rows=118 width=34) (never executed)\"\n" +
+"\"                          Recheck Cond: ((t6.coso_id)::text = (cosi_coso.codice)::text)\"\n" +
+"\"                          ->  Bitmap Index Scan on cosi_codicicosi_coso_id  (cost=0.00..5.23 rows=118 width=0) (never executed)\"\n" +
+"\"                                Index Cond: ((t6.coso_id)::text = (cosi_coso.codice)::text)\"\n" +
+"\"              ->  Index Scan using codici_codice_pkey on codici_codice t7  (cost=0.00..3.00 rows=1 width=12) (never executed)\"\n" +
+"\"                    Index Cond: ((t7.codice)::text = (t6.codice_id)::text)\"\n" +
+"\"                    Filter: ((t7.tipo)::text = 'MAGIC'::text)\"\n" +
+"\"        ->  Bitmap Heap Scan on cosi_codicicosi  (cost=5.26..404.22 rows=118 width=34) (never executed)\"\n" +
+"\"              Recheck Cond: ((cosi_codicicosi.coso_id)::text = (cosi_coso.codice)::text)\"\n" +
+"\"              ->  Bitmap Index Scan on cosi_codicicosi_coso_id  (cost=0.00..5.23 rows=118 width=0) (never executed)\"\n" +
+"\"                    Index Cond: ((cosi_codicicosi.coso_id)::text = (cosi_coso.codice)::text)\"\n" +
+"\"  ->  Index Scan using codici_codice_pkey on codici_codice  (cost=0.00..3.00 rows=1 width=12) (never executed)\"\n" +
+"\"        Index Cond: ((codici_codice.codice)::text = (cosi_codicicosi.codice_id)::text)\"\n" +
+"\"        Filter: ((codici_codice.tipo)::text = 'GP2'::text)\"" 
+
+        var node2 = planview.parsePlan(plan2);
+        test("Parsing quoted plan", function() {
+          equal(node2.label, 'Nested Loop', "node label");
+          ok(null !== node2.executed, "root node executed");
+          ok(null === node2.children[1].executed, "never executed node");
+        });
+
+      });
+    </script>
+  </head>
+  <body>
+    <h1 id="qunit-header">Javascript Query Plan Visualizer Unit Test</h1>
+    <h2 id="qunit-banner"></h2>
+    <h2 id="qunit-userAgent"></h2>
+    <ol id="qunit-tests"></ol>
+  </body>
+</html>
+
