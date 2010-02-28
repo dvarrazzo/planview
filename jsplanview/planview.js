@@ -181,6 +181,8 @@ planview = {};
     // Configurable parameters
     bar_height: 20,
     margin_x: 20,
+    label_offset: 20,
+    curve_control_length: 40,
 
     /* Render a chart from a dataset on `node` to `target`. */
     render: function(dataset)
@@ -228,8 +230,8 @@ planview = {};
               .move(
                 start_point[0], start_point[1])
               .curveC(
-                start_point[0] + 40, start_point[1],
-                end_point[0] - 40, end_point[1],
+                start_point[0] + self.curve_control_length, start_point[1],
+                end_point[0] - self.curve_control_length, end_point[1],
                 end_point[0], end_point[1] + i * 4 - 2),
               {fill: 'none', stroke: color, strokeWidth: 3});
           });
@@ -243,11 +245,11 @@ planview = {};
 
           if ((self._data(node).end - self._data(node).start) 
               > 0.4 * self._getChartWidth()) {
-            label_x = self._data(node).start_point[0] + 20;
+            label_x = self._data(node).start_point[0] + self.label_offset;
           } else if (self._data(node).end < 0.5 * self._getChartWidth()) {
-            label_x = self._data(node).end_point[0] + 20;
+            label_x = self._data(node).end_point[0] + self.label_offset;
           } else {
-            label_x = self._data(node).start_point[0] - 20;
+            label_x = self._data(node).start_point[0] - self.label_offset;
             label_attr['text-anchor'] = 'end';
           }
 
