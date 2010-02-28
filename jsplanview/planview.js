@@ -34,7 +34,8 @@ planview = {};
   mod.renderTimeline = function(node, tgt, dataset)
   {
     var renderer = new mod.TimelineRenderer(node, tgt);
-    renderer.render(dataset);
+    renderer.dataset = dataset;
+    renderer.render();
   }
 
   mod.PGPlanParser = function()
@@ -172,6 +173,7 @@ planview = {};
   {
     this.node = node;
     this.target = target;
+    this.dataset = 'planned';
   }
 
   mod.TimelineRenderer.prototype =
@@ -180,17 +182,9 @@ planview = {};
     bar_height: 20,
     margin_x: 20,
 
-    /* Render a chart from a dataset on `node` to `target`. 
-     * `dataset` can be either 'planned' or 'executed'. */
+    /* Render a chart from a dataset on `node` to `target`. */
     render: function(dataset)
     {
-      // The data to plot for each node (planned vs. executed)
-      if (dataset === 'executed') {
-        this._data = function(n) { return n.executed; };
-      } else {
-        this._data = function(n) { return n.planned; };
-      }
-
       this._makeChart();
 
       // Allow the closures to access this;
@@ -209,8 +203,8 @@ planview = {};
             {fill: 'blue', stroke: 'navy', strokeWidth: 1});
 
           // Store the key points where to draw lines
-          self._data(node)['start_point'] = [bar_left, y + 0.5 * self.bar_height];
-          self._data(node)['end_point'] = [bar_right, y + 0.5 * self.bar_height];
+          self._data(node).start_point = [bar_left, y + 0.5 * self.bar_height];
+          self._data(node).end_point = [bar_right, y + 0.5 * self.bar_height];
         });
 
         self._iterNode(self, function (node, y) {
@@ -271,9 +265,8 @@ planview = {};
 
     /* Create the chart div and configure the scale and other amenities. 
      *
-     * The _data() function must be already in place.
      * Create the div containing the svg and return the svg contained in it.
-     * Create the method _d2x().
+     * Set the value for `_scale_x` to be used by the method `_d2x()`.
      */
     _makeChart: function() {
       // Create the chart container
@@ -282,7 +275,7 @@ planview = {};
 
       // Calculate width and scale of the plot
       var tot_width_px = chart.innerWidth();
-      var scale_x = (tot_width_px - 2 * this.margin_x) / this._getChartWidth();
+      this._scale_x = (tot_width_px - 2 * this.margin_x) / this._getChartWidth();
 
       var tot_height_px = mod.countNodes(this.node) * this.bar_height;
       chart.css("height", tot_height_px);
@@ -292,19 +285,18 @@ planview = {};
         .appendTo(chart)
         .width(this.target.outerWidth())
         .height(tot_height_px);
-
-      this._p2x = function(d) { return scale_x * d + this.margin_x; }
     },
 
     /* Extract the data from a node.
      * Allows to choose between rendering either planned or executed time. */
     _data: function(node) {
-      throw "_data() not configured";
+      return node[this.dataset !== 'executed' ? 'planned' : 'executed'];
     },
 
-    /* Convert from time to x position on the chart. */
-    _p2x: function(x) {
-      throw "_p2x() not configured";
+    /* Convert from the numerical value to render to x position on the chart. 
+     * The `_makeChart()` method must be called before using this method. */
+    _p2x: function(t) {
+      return this._scale_x * t + this.margin_x;
     },
 
     /* Iterate a function over the nodes of the tree to be rendered.
