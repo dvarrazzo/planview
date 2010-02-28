@@ -177,8 +177,7 @@ planview = {};
   mod.TimelineRenderer.prototype =
   {
     bar_height: 20,
-
-    NeverExecuted: {},
+    margin_x: 20,
 
     render: function(dataset)
     {
@@ -194,71 +193,45 @@ planview = {};
         data = function(n) { return n.planned; };
       }
 
+      // Allow the closures to access this;
+      var self = this;
+
       // Calculate width and scale of the plot
-      var root_node = this.node;
-      var tot_height_px = mod.countNodes(root_node) * this.bar_height;
-      var tot_width = data(root_node).end; // in data unit
+      var tot_height_px = mod.countNodes(self.node) * this.bar_height;
+      var tot_width = data(self.node).end; // in data unit
       if (!tot_width) throw "no plan time found";
       var tot_width_px = target.innerWidth();
-      var scale_x = tot_width_px / tot_width;
-
-      // Plot the bars
-      var bar_height = this.bar_height;
-      var height = mod.walkDepthFirst(root_node, 0, function(node, y) {
-
-        if (null === data(node)) { return y; } // never exec'd node
-        var bar_left = (data(node).start * scale_x);
-        var bar_width = ((data(node).end - data(node).start) * scale_x);
-        if (bar_width < 1) { bar_width = 1; }
-
-        var bar = $('<div class="bar"></div>').css({
-          left: (data(node).start * scale_x) + "px",
-          width: bar_width + "px",
-          top: (y + 2) + "px",
-          height: (bar_height - 4) + "px",
-        }).appendTo(target);
-
-        // Find the best point to put the label (on, before, after the bar)
-        var label = $('<span class="label"></span>').text(node.label);
-        var label_ctr;
-        if ((data(node).end - data(node).start) > 0.4 * tot_width) {
-          label_ctr = bar;
-        } else if (data(node).end < 0.5 * tot_width) {
-          label_ctr = $('<div class="label-ctr"></div>').css({
-            left: (bar_left + bar_width) + "px",
-            top: (y + 2) + "px",
-            height: bar_height + "px",
-          }).appendTo(target);
-        } else {
-          label_ctr = $('<div class="label-ctr"></div>').css({
-            left: 0,
-            width: bar_left + "px",
-            top: (y + 2) + "px",
-            height: bar_height + "px",
-          }).appendTo(target);
-        }
-        label_ctr.append(label);
-
-        // Store the key points where to draw lines
-        data(node)['start_point'] = [bar_left, y + 0.5 * bar_height];
-        data(node)['end_point'] = [bar_left + bar_width, y + 0.5 * bar_height];
-
-        return y + bar_height;
-      });
-
-      // Fit the chart height to the bars
-      target.css("height", height);
+      var scale_x = (tot_width_px - 2 * self.margin_x) / tot_width;
+      var p2x = function(d) { return scale_x * d + self.margin_x; }
+      target.css("height", tot_height_px);
 
       // Create the svg overlay
       var svg = $('<div class="svg"></div>')
         .appendTo(target)
         .width(this.target.outerWidth())
-        .height(height);
+        .height(tot_height_px);
       var xoff = -parseInt(svg.css("left")); // assume px
 
-      svg.svg({onLoad: function (svg) {
-        mod.walkDepthFirst(root_node, null, function(node, y) {
-          if (null === data(node)) { return; } // never exec'd node
+      svg.svg(function (svg) {
+        mod.walkDepthFirst(self.node, 0, function(node, y) {
+
+          if (null === data(node)) { return y; } // never exec'd node
+
+          var bar_left = p2x(data(node).start);
+          var bar_right = p2x(data(node).end);
+          if (bar_right < 2 + bar_left) { bar_right = 2 + bar_left; }
+          var bar_width = bar_right - bar_left;
+
+          svg.rect(
+            bar_left, y + 2,
+            bar_width, self.bar_height - 4,
+            {fill: 'blue', stroke: 'navy', strokeWidth: 1});
+
+          // Store the key points where to draw lines
+          data(node)['start_point'] = [bar_left, y + 0.5 * self.bar_height];
+          data(node)['end_point'] = [bar_right, y + 0.5 * self.bar_height];
+
+          // Plot the curves to the child nodes (already drawn)
           $.each(node.children, function (i, child)
           {
             if (null === data(child)) { return; }
@@ -281,8 +254,24 @@ planview = {};
                 xoff + end_point[0], end_point[1] + i * 4 - 2),
               {fill: 'none', stroke: color, strokeWidth: 3});
           });
+
+          // Find the best point to put the label (on, before, after the bar)
+          // TODO: labels should be rendered after lines
+          var label_y = y + self.bar_height - 5;
+          var label_attr = {'font-size': '80%'};
+          if ((data(node).end - data(node).start) > 0.4 * tot_width) {
+            svg.text(bar_left + 20, label_y, node.label, label_attr);
+          } else if (data(node).end < 0.5 * tot_width) {
+            svg.text(bar_left + bar_width + 20, label_y, node.label, label_attr);
+          } else {
+            label_attr['text-anchor'] = 'end';
+            svg.text(bar_left - 20, label_y, node.label, label_attr);
+          }
+
+          return y + self.bar_height;
         });
-      }});
+
+      });
     },
   }
 

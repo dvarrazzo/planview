@@ -25,7 +25,7 @@ body {
   background-color: #be0;
   border: 1px solid black;
   height: auto;
-  padding: 5px 15px;
+  padding: 5px 0;
   font-family: arial,sans-serif;
 }
 
@@ -40,7 +40,7 @@ div.bar-chart {
 div.svg {
   position: absolute;
   top: 0;
-  left: -15;
+  left: 0;
 }
 
 div.bar {
