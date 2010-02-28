@@ -176,49 +176,30 @@ planview = {};
 
   mod.TimelineRenderer.prototype =
   {
+    // Configurable parameters
     bar_height: 20,
     margin_x: 20,
 
+    /* Render a chart from a dataset on `node` to `target`. 
+     * `dataset` can be either 'planned' or 'executed'. */
     render: function(dataset)
     {
-      // Create the chart container
-      var target = $('<div class="bar-chart"></div>')
-        .appendTo(this.target);
-
       // The data to plot for each node (planned vs. executed)
-      var data;
       if (dataset === 'executed') {
-        data = function(n) { return n.executed; };
+        this._data = function(n) { return n.executed; };
       } else {
-        data = function(n) { return n.planned; };
+        this._data = function(n) { return n.planned; };
       }
+
+      this._makeChart();
 
       // Allow the closures to access this;
       var self = this;
 
-      // Calculate width and scale of the plot
-      var tot_height_px = mod.countNodes(self.node) * this.bar_height;
-      var tot_width = data(self.node).end; // in data unit
-      if (!tot_width) throw "no plan time found";
-      var tot_width_px = target.innerWidth();
-      var scale_x = (tot_width_px - 2 * self.margin_x) / tot_width;
-      var p2x = function(d) { return scale_x * d + self.margin_x; }
-      target.css("height", tot_height_px);
-
-      // Create the svg overlay
-      var svg = $('<div class="svg"></div>')
-        .appendTo(target)
-        .width(this.target.outerWidth())
-        .height(tot_height_px);
-      var xoff = -parseInt(svg.css("left")); // assume px
-
-      svg.svg(function (svg) {
-        mod.walkDepthFirst(self.node, 0, function(node, y) {
-
-          if (null === data(node)) { return y; } // never exec'd node
-
-          var bar_left = p2x(data(node).start);
-          var bar_right = p2x(data(node).end);
+      this._svg.svg(function (svg) {
+        self._iterNode(self, function (node, y) {
+          var bar_left = self._p2x(self._data(node).start);
+          var bar_right = self._p2x(self._data(node).end);
           if (bar_right < 2 + bar_left) { bar_right = 2 + bar_left; }
           var bar_width = bar_right - bar_left;
 
@@ -228,51 +209,116 @@ planview = {};
             {fill: 'blue', stroke: 'navy', strokeWidth: 1});
 
           // Store the key points where to draw lines
-          data(node)['start_point'] = [bar_left, y + 0.5 * self.bar_height];
-          data(node)['end_point'] = [bar_right, y + 0.5 * self.bar_height];
+          self._data(node)['start_point'] = [bar_left, y + 0.5 * self.bar_height];
+          self._data(node)['end_point'] = [bar_right, y + 0.5 * self.bar_height];
+        });
 
+        self._iterNode(self, function (node, y) {
           // Plot the curves to the child nodes (already drawn)
           $.each(node.children, function (i, child)
           {
-            if (null === data(child)) { return; }
+            if (null === self._data(child)) { return; }
+            var end_point = self._data(node).start_point;
+
             // Check if the child is sequential or parallel to the parent
             var start_point, color;
-            if (data(node).start < data(child).end) {
-              start_point = data(child).start_point;
+            if (self._data(node).start < self._data(child).end) {
+              start_point = self._data(child).start_point;
               color = '#0c0';
             } else {
-              start_point = data(child).end_point;
+              start_point = self._data(child).end_point;
               color = '#c00';
             }
-            var end_point = data(node).start_point;
+
             svg.path(svg.createPath()
               .move(
-                xoff + start_point[0], start_point[1])
+                start_point[0], start_point[1])
               .curveC(
-                xoff + start_point[0] + 40, start_point[1],
-                xoff + end_point[0] - 40, end_point[1],
-                xoff + end_point[0], end_point[1] + i * 4 - 2),
+                start_point[0] + 40, start_point[1],
+                end_point[0] - 40, end_point[1],
+                end_point[0], end_point[1] + i * 4 - 2),
               {fill: 'none', stroke: color, strokeWidth: 3});
           });
-
-          // Find the best point to put the label (on, before, after the bar)
-          // TODO: labels should be rendered after lines
-          var label_y = y + self.bar_height - 5;
-          var label_attr = {'font-size': '80%'};
-          if ((data(node).end - data(node).start) > 0.4 * tot_width) {
-            svg.text(bar_left + 20, label_y, node.label, label_attr);
-          } else if (data(node).end < 0.5 * tot_width) {
-            svg.text(bar_left + bar_width + 20, label_y, node.label, label_attr);
-          } else {
-            label_attr['text-anchor'] = 'end';
-            svg.text(bar_left - 20, label_y, node.label, label_attr);
-          }
-
-          return y + self.bar_height;
         });
 
+        self._iterNode(self, function (node, y) {
+          // Find the best point to put the label (on, before, after the bar)
+          var label_x,
+              label_y = y + self.bar_height - 5,
+              label_attr = {'font-size': '80%'};
+
+          if ((self._data(node).end - self._data(node).start) 
+              > 0.4 * self._getChartWidth()) {
+            label_x = self._data(node).start_point[0] + 20;
+          } else if (self._data(node).end < 0.5 * self._getChartWidth()) {
+            label_x = self._data(node).end_point[0] + 20;
+          } else {
+            label_x = self._data(node).start_point[0] - 20;
+            label_attr['text-anchor'] = 'end';
+          }
+
+          svg.text(label_x, label_y, node.label, label_attr);
+        });
       });
     },
+
+    /* Return the total width of the chart in data units. */
+    _getChartWidth: function() {
+      var tot_width = this._data(this.node).end; // in data unit
+      if (!tot_width) throw "no plan time found";
+      return tot_width;
+    },
+
+    /* Create the chart div and configure the scale and other amenities. 
+     *
+     * The _data() function must be already in place.
+     * Create the div containing the svg and return the svg contained in it.
+     * Create the method _d2x().
+     */
+    _makeChart: function() {
+      // Create the chart container
+      var chart = $('<div class="bar-chart"></div>')
+        .appendTo(this.target);
+
+      // Calculate width and scale of the plot
+      var tot_width_px = chart.innerWidth();
+      var scale_x = (tot_width_px - 2 * this.margin_x) / this._getChartWidth();
+
+      var tot_height_px = mod.countNodes(this.node) * this.bar_height;
+      chart.css("height", tot_height_px);
+
+      // Create the svg overlay
+      this._svg = $('<div class="svg"></div>')
+        .appendTo(chart)
+        .width(this.target.outerWidth())
+        .height(tot_height_px);
+
+      this._p2x = function(d) { return scale_x * d + this.margin_x; }
+    },
+
+    /* Extract the data from a node.
+     * Allows to choose between rendering either planned or executed time. */
+    _data: function(node) {
+      throw "_data() not configured";
+    },
+
+    /* Convert from time to x position on the chart. */
+    _p2x: function(x) {
+      throw "_p2x() not configured";
+    },
+
+    /* Iterate a function over the nodes of the tree to be rendered.
+     * f has signature f(node, y) where y is the vertical position of the node.
+     */
+    _iterNode: function(self, f)
+    {
+      mod.walkDepthFirst(self.node, 0, function(node, y) {
+        if (null === self._data(node)) { return y; } // never exec'd node
+        f(node, y);
+        return y + self.bar_height;
+      });
+    },
+
   }
 
   mod.lstrip = function(s)
