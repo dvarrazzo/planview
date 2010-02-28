@@ -191,7 +191,7 @@ planview = {};
       var self = this;
 
       this._svg.svg(function (svg) {
-        self._iterNode(self, function (node, y) {
+        self._iterNode(function (node, y) {
           var bar_left = self._p2x(self._data(node).start);
           var bar_right = self._p2x(self._data(node).end);
           if (bar_right < 2 + bar_left) { bar_right = 2 + bar_left; }
@@ -207,7 +207,7 @@ planview = {};
           self._data(node).end_point = [bar_right, y + 0.5 * self.bar_height];
         });
 
-        self._iterNode(self, function (node, y) {
+        self._iterNode(function (node, y) {
           // Plot the curves to the child nodes (already drawn)
           $.each(node.children, function (i, child)
           {
@@ -235,7 +235,7 @@ planview = {};
           });
         });
 
-        self._iterNode(self, function (node, y) {
+        self._iterNode(function (node, y) {
           // Find the best point to put the label (on, before, after the bar)
           var label_x,
               label_y = y + self.bar_height - 5,
@@ -302,9 +302,10 @@ planview = {};
     /* Iterate a function over the nodes of the tree to be rendered.
      * f has signature f(node, y) where y is the vertical position of the node.
      */
-    _iterNode: function(self, f)
+    _iterNode: function(f)
     {
-      mod.walkDepthFirst(self.node, 0, function(node, y) {
+      var self = this;
+      mod.walkDepthFirst(this.node, 0, function(node, y) {
         if (null === self._data(node)) { return y; } // never exec'd node
         f(node, y);
         return y + self.bar_height;
