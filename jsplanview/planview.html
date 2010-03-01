@@ -32,9 +32,13 @@
         });
 
         $('#timeline-btn').click(function() {
-          planview.renderReport(
-            $("#input-txt").val(),
-            $("#output-area").show().empty());
+          try {
+            planview.renderReport(
+              $("#input-txt").val(),
+              $("#output-area").show().empty());
+          } catch (e) {
+            alert("Query plan parsing failed: '" + e + "'.");
+          }
         });
       });
     </script>
