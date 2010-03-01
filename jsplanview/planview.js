@@ -212,10 +212,9 @@ planview = {};
           if (bar_right < 2 + bar_left) { bar_right = 2 + bar_left; }
           var bar_width = bar_right - bar_left;
 
-          svg.rect(
-            bar_left, y + 2,
-            bar_width, self.bar_height - 4,
-            {fill: 'blue', stroke: 'navy', strokeWidth: 1});
+          var attrs = self._getBarColour(node);
+          attrs['strokeWidth'] = 1;
+          svg.rect(bar_left, y + 2, bar_width, self.bar_height - 4, attrs);
 
           // Store the key points where to draw lines
           self._data(node).start_point = [bar_left, y + 0.5 * self.bar_height];
@@ -302,6 +301,23 @@ planview = {};
         .height(tot_height_px);
     },
 
+    /* Return the colour of a bar. 
+     * Currently red bars mean an error of more than 100% in the returned rows
+     * w.r.t. what was planned. */
+    _getBarColour: function(node) {
+      var rv = {fill: '#44F', stroke: 'navy'};
+      if (this.dataset !== 'executed') { return rv; }
+
+      var rows_planned = node.planned.rows;
+      var rows_executed = node.executed.rows;
+      console.log(rows_planned + " " + rows_executed);
+      if (rows_executed > rows_planned * 2 || rows_executed < rows_planned * 0.5) {
+        rv = {fill: '#F44', stroke: 'maroon'};
+      }
+
+      return rv;
+    },
+ 
     /* Extract the data from a node.
      * Allows to choose between rendering either planned or executed time. */
     _data: function(node) {
