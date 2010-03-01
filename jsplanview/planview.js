@@ -31,11 +31,24 @@ planview = {};
     return parser.stack[0][0];
   }
 
+  /* Render an entire dataset into a target container */
   mod.renderTimeline = function(node, tgt, dataset)
   {
     var renderer = new mod.TimelineRenderer(node, tgt);
     renderer.dataset = dataset;
     renderer.render();
+  }
+
+  /* Render a complete report into a target container */
+  mod.renderReport = function(plan, tgt) {
+    var node = planview.parsePlan(plan);
+    tgt.append($("<h2>planned</h2>"));
+    planview.renderTimeline(node, tgt, "planned");
+
+    if (node.executed) {
+      tgt.append($("<h2>executed</h2>"));
+      planview.renderTimeline(node, tgt, "executed");
+    }
   }
 
   mod.PGPlanParser = function()

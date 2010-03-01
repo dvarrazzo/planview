@@ -27,22 +27,14 @@
     <script language="javascript">
       $(document).ready(function()
       {
-        $('#demo-btn').click(function()
-        {
+        $('#demo-btn').click(function() {
           $('#input-txt').val($.trim($('#demo').text()));
         });
 
-        $('#timeline-btn').click(function()
-        {
-          var node = planview.parsePlan($("#input-txt").val());
-          $("#output-area").show().empty().append($("<h2>planned</h2>"));
-          planview.renderTimeline(node, $('#output-area'), "planned");
-
-          if (node.executed)
-          {
-            $("#output-area").append($("<h2>executed</h2>"));
-            planview.renderTimeline(node, $('#output-area'), "executed");
-          }
+        $('#timeline-btn').click(function() {
+          planview.renderReport(
+            $("#input-txt").val(),
+            $("#output-area").show().empty());
         });
       });
     </script>
