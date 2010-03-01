@@ -18,7 +18,17 @@
 
 body {
   overflow-y: scroll;
-  font-family: arial,sans-serif;
+  font-family: "Lucida Grande",Verdana,Arial,Helvetica,sans-serif;
+}
+
+h2 {
+  margin-bottom: 0.25em;
+}
+
+p {
+  font-size: small;
+  margin-top: 0;
+  margin-bottom: 0.5em;
 }
 
 #output-area {
@@ -92,8 +102,6 @@ body #tooltip {
 }
 
 .copyright p {
-  float: left;
-  margin: 0;
   color: #888;
   font-size: 75%;
 }

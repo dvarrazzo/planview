@@ -71,6 +71,10 @@ Subquery Scan "*SELECT*"  (cost=3998159.58..4017423.33 rows=19757 width=1688) (a
                           -&gt;  Seq Scan on accounts a  (cost=0.00..285.01 rows=2101 width=34) (actual time=0.012..3.144 rows=2101 loops=1)
                                 Filter: (kudos_to IS NOT NULL)
     </div>
+
+    <h2>PostgreSQL query plan visualizer</h2>
+    <p>Display the timeline of a query execution.</p>
+
     <textarea id="input-txt" cols="120" rows="15" title="Enter the result of an EXPLAIN or EXPLAIN ANALYZE statement."></textarea>
     <br/>
     <input id="timeline-btn" type="button" value="Timeline" title="Generate the plan chart." />
@@ -79,8 +83,9 @@ Subquery Scan "*SELECT*"  (cost=3998159.58..4017423.33 rows=19757 width=1688) (a
 
     <div class="copyright">
       <hr />
-      <p>&copy; 2010 Daniele Varrazzo</p>
       <a href="http://www.develer.com/"><img alt="Develer S.R.L." src="develer-small.png" /></a>
+      <p>&copy; 2010 Daniele Varrazzo</p>
+      <p>Please send feedback to piro at develer.com</p>
     </div>
 
 <script type="text/javascript">
