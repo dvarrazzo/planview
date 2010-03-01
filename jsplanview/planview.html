@@ -40,6 +40,7 @@
               $("#input-txt").val(),
               $("#output-area").show().empty());
           } catch (e) {
+            $('#output-area').hide();
             alert("Query plan parsing failed: '" + e + "'.");
           }
         });

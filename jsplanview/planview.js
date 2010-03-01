@@ -41,6 +41,10 @@ planview = {};
 
   /* Render a complete report into a target container */
   mod.renderReport = function(plan, tgt) {
+    if ('' == mod.lstrip(plan)) {
+      throw "no query plan provided";
+    }
+
     var node = planview.parsePlan(plan);
     tgt.append($("<h2>planned</h2>"));
     planview.renderTimeline(node, tgt, "planned");
