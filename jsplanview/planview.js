@@ -98,6 +98,8 @@ planview = {};
       return re_node.test(line);
     },
 
+    _node_id: 0,
+
     makeNode: function(line)
     {
       var match = re_node.exec(line);
@@ -106,6 +108,7 @@ planview = {};
       var timing = match[3];
 
       var node = new mod.QueryNode(label);
+      node.id = ++this._node_id;
       this.parseTiming(node, timing);
       return [node, level];
     },
@@ -165,6 +168,7 @@ planview = {};
 
   mod.QueryNode = function(label)
   {
+    this.id = null;
     this.label = label;
     this.details = [];
     this.children = [];
@@ -214,6 +218,7 @@ planview = {};
 
           var attrs = self._getBarColour(node);
           attrs['strokeWidth'] = 1;
+          attrs['id'] = 'bar-' + self.dataset + '-' + node.id;
           svg.rect(bar_left, y + 2, bar_width, self.bar_height - 4, attrs);
 
           // Store the key points where to draw lines
