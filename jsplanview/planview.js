@@ -59,7 +59,7 @@ planview = {};
   }
 
   var re_node = /^(\s+->\s+|\s+)?([^\s][^\(]+?)\s*(\(cost=.*)$/;
-  var re_timing = /\(cost=(\d+(?:\.\d+))..(\d+(?:\.\d+)) rows=(\d+) width=(\d+)\)(?:\s+\(actual time=(\d+(?:\.\d+))..(\d+(?:\.\d+)) rows=(\d+) loops=(\d+))?/
+  var re_timing = /\((cost=(\d+(?:\.\d+))..(\d+(?:\.\d+)) rows=(\d+) width=(\d+))\)(?:\s+\((actual time=(\d+(?:\.\d+))..(\d+(?:\.\d+)) rows=(\d+) loops=(\d+))\))?/;
 
   mod.PGPlanParser.prototype =
   {
@@ -118,16 +118,23 @@ planview = {};
       var match = re_timing.exec(timing);
       if (!match) { throw "bad timing string: " + timing; }
       node.planned = {
-        start: parseFloat(match[1]),
-        end: parseFloat(match[2]),
-        rows: parseInt(match[3]),
+        start: parseFloat(match[2]),
+        end: parseFloat(match[3]),
+        rows: parseInt(match[4]),
       }
-      if (match[5]) {
+      node.details.push("Planned: " + match[1]);
+
+      if (match[7]) {
+        var detail = match[6];
         node.executed = {
-          start: parseFloat(match[5]),
-          end: parseFloat(match[6]),
-          rows: parseInt(match[7]),
+          start: parseFloat(match[7]),
+          end: parseFloat(match[8]),
+          rows: parseInt(match[9]),
+        };
+        if (node.hasBadRows(node)) {
+          detail = detail.replace(/(rows=\d+)/, '<strong class="bad">$1</strong>');
         }
+        node.details.push("Executed: " + detail);
       }
     },
 
@@ -180,9 +187,17 @@ planview = {};
     {
       this.details.push(s);
     },
+
     addChild: function(s)
     {
       this.children.push(s);
+    },
+
+    hasBadRows: function() {
+      if (null === this.executed) { return false; }
+      var rows_planned = this.planned.rows;
+      var rows_executed = this.executed.rows;
+      return rows_executed > rows_planned * 2 || rows_executed < rows_planned * 0.5;
     },
   }
 
@@ -218,7 +233,7 @@ planview = {};
 
           var attrs = self._getBarColour(node);
           attrs['strokeWidth'] = 1;
-          attrs['id'] = 'bar-' + self.dataset + '-' + node.id;
+          attrs['class'] = self._getNodeId(node);
           svg.rect(bar_left, y + 2, bar_width, self.bar_height - 4, attrs);
 
           // Store the key points where to draw lines
@@ -258,7 +273,9 @@ planview = {};
           // Find the best point to put the label (on, before, after the bar)
           var label_x,
               label_y = y + self.bar_height - 5,
-              label_attr = {'font-size': '80%'};
+              label_attr = {
+                'font-size': '80%',
+                'class': self._getNodeId(node),};
 
           if ((self._data(node).end - self._data(node).start) 
               > 0.4 * self._getChartWidth()) {
@@ -271,6 +288,23 @@ planview = {};
           }
 
           svg.text(label_x, label_y, node.label, label_attr);
+        });
+
+        self._iterNode(function (node, y) {
+          // Create the tooltip div for the node.
+          var base_id = self._getNodeId(node);
+          var tt = $('<div class="tooltip"></div>')
+            .attr('id', 'tip-' + base_id)
+            .insertAfter(self._chart);
+          $.each(node.details, function(i, d) {
+            tt.append(d.replace(/^([^:]+:)/, "<strong>$1</strong>") + "<br />");
+          });
+
+          // Install the tooltip on the bars and the labels
+          $('.' + base_id).tooltip({
+            bodyHandler: function() { return $('#tip-' + base_id).html(); }
+          });
+
         });
       });
     },
@@ -289,7 +323,7 @@ planview = {};
      */
     _makeChart: function() {
       // Create the chart container
-      var chart = $('<div class="bar-chart"></div>')
+      var chart = this._chart = $('<div class="bar-chart"></div>')
         .appendTo(this.target);
 
       // Calculate width and scale of the plot
@@ -306,6 +340,11 @@ planview = {};
         .height(tot_height_px);
     },
 
+    /* Return the id for a node. */
+    _getNodeId: function(node, prefix) {
+      return (prefix || '') + self.dataset + '-' + node.id;
+    },
+
     /* Return the colour of a bar. 
      * Currently red bars mean an error of more than 100% in the returned rows
      * w.r.t. what was planned. */
@@ -313,9 +352,7 @@ planview = {};
       var rv = {fill: '#44F', stroke: 'navy'};
       if (this.dataset !== 'executed') { return rv; }
 
-      var rows_planned = node.planned.rows;
-      var rows_executed = node.executed.rows;
-      if (rows_executed > rows_planned * 2 || rows_executed < rows_planned * 0.5) {
+      if (node.hasBadRows()) {
         rv = {fill: '#F44', stroke: 'maroon'};
       }
 
