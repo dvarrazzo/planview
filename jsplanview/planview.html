@@ -20,7 +20,7 @@
     <title>Query Plan Visualizer</title>
     <link rel="stylesheet" href="planview.css" type="text/css" media="screen" />
     <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/themes/ui-lightness/jquery-ui.css" type="text/css" media="all" />
-		<script language="javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
+    <script language="javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
     <script language="javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.js"></script>
     <script language="javascript" src="jquery.svg.js"></script>
     <script language="javascript" src="jquery.tooltip.js"></script>
@@ -28,11 +28,13 @@
     <script language="javascript">
       $(document).ready(function()
       {
-        $('#demo-btn').click(function() {
+        $('#input-txt').tooltip();
+
+        $('#demo-btn').tooltip().click(function() {
           $('#input-txt').val($.trim($('#demo').text()));
         });
 
-        $('#timeline-btn').click(function() {
+        $('#timeline-btn').tooltip().click(function() {
           try {
             planview.renderReport(
               $("#input-txt").val(),
@@ -68,10 +70,10 @@ Subquery Scan "*SELECT*"  (cost=3998159.58..4017423.33 rows=19757 width=1688) (a
                           -&gt;  Seq Scan on accounts a  (cost=0.00..285.01 rows=2101 width=34) (actual time=0.012..3.144 rows=2101 loops=1)
                                 Filter: (kudos_to IS NOT NULL)
     </div>
-    <textarea id="input-txt" cols="120" rows="15"></textarea>
+    <textarea id="input-txt" cols="120" rows="15" title="Enter the resutl of an EXPLAIN or EXPLAIN ANALYZE statement."></textarea>
     <br/>
-    <input id="demo-btn" type="button" value="Demo" />
-    <input id="timeline-btn" type="button" value="Timeline" />
+    <input id="timeline-btn" type="button" value="Timeline" title="Generate the plan chart." />
+    <input id="demo-btn" type="button" value="Demo" title="Insert an example plan in the input box." />
     <div id="output-area" style="display: none"></div>
 
 <script type="text/javascript">
