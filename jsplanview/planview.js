@@ -310,7 +310,6 @@ planview = {};
 
       var rows_planned = node.planned.rows;
       var rows_executed = node.executed.rows;
-      console.log(rows_planned + " " + rows_executed);
       if (rows_executed > rows_planned * 2 || rows_executed < rows_planned * 0.5) {
         rv = {fill: '#F44', stroke: 'maroon'};
       }
