@@ -68,17 +68,18 @@ div.tooltip {
 
 /* These two rules are the original values from jquery.tooltip.css */
 #tooltip {
-	position: absolute;
-	z-index: 3000;
-	border: 1px solid #111;
-	background-color: #eee;
-	padding: 5px;
-	opacity: 0.85;
+  position: absolute;
+  z-index: 3000;
+  border: 1px solid #111;
+  background-color: #eee;
+  padding: 5px;
+  opacity: 0.85;
 }
 #tooltip h3, #tooltip div { margin: 0; }
 
-#tooltip {
+body #tooltip {
   white-space: nowrap;
+  background-color: #ffe;
   font-size: 80%;
 }
 
