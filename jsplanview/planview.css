@@ -89,9 +89,14 @@ div.tooltip {
 #tooltip h3, #tooltip div { margin: 0; }
 
 body #tooltip {
-  white-space: nowrap;
   background-color: #ffe;
   font-size: 80%;
+}
+
+body #tooltip p {
+  text-indent: -5em;
+  padding-left: 5em;
+  margin: 0;
 }
 
 #tooltip .bad {

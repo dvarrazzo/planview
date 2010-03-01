@@ -301,7 +301,7 @@ planview = {};
             .attr('id', 'tip-' + base_id)
             .insertAfter(self._chart);
           $.each(node.details, function(i, d) {
-            tt.append(d.replace(/^([^:]+:)/, "<strong>$1</strong>") + "<br />");
+            tt.append("<p>" + d.replace(/^([^:]+:)/, "<strong>$1</strong>") + "</p>");
           });
 
           // Install the tooltip on the bars and the labels
