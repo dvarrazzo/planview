@@ -52,17 +52,22 @@
 "                          ->  Seq Scan on accounts a  (cost=0.00..285.01 rows=2101 width=34) (actual time=0.012..3.144 rows=2101 loops=1)\n" +
 "                                Filter: (kudos_to IS NOT NULL)" ;
 
-        var node1 = planview.parsePlan(plan1);
-        test("Parsing textual plan", function() {
-          equal(node1.label, 'Subquery Scan "*SELECT*"', "node label");
-          equal(node1.children.length, 1, "children no.");
-          equal(node1.planned.start, 3998159.58, "planned start");
-          equal(node1.planned.end, 4017423.33, "planned end");
-          equal(node1.planned.rows, 19757, "planned rows");
-          equal(node1.executed.start, 2252714.704, "executed start");
-          equal(node1.executed.end, 2291343.377, "executed end");
-          equal(node1.executed.rows, 9629, "executed rows");
-        });
+        var test1 = function(plan, title) {
+          var node = planview.parsePlan(plan);
+          test(title, function() {
+            equal(node.label, 'Subquery Scan "*SELECT*"', "node label");
+            equal(node.children.length, 1, "children no.");
+            equal(node.planned.start, 3998159.58, "planned start");
+            equal(node.planned.end, 4017423.33, "planned end");
+            equal(node.planned.rows, 19757, "planned rows");
+            equal(node.executed.start, 2252714.704, "executed start");
+            equal(node.executed.end, 2291343.377, "executed end");
+            equal(node.executed.rows, 9629, "executed rows");
+          });
+        };
+
+        test1(plan1, "Parsing textual plan");
+        test1(" " + plan1, "Parsing plan with whitespace prefix");
 
         // quoted as per pgadmin output
         // contains "never executed" nodes

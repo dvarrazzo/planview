@@ -58,7 +58,7 @@ planview = {};
     this.tmp_line = "";
   }
 
-  var re_node = /^(\s+->\s+)?([^\s][^\(]+?)\s*(\(.*)$/;
+  var re_node = /^(\s+->\s+|\s+)?([^\s][^\(]+?)\s*(\(cost=.*)$/;
   var re_timing = /\(cost=(\d+(?:\.\d+))..(\d+(?:\.\d+)) rows=(\d+) width=(\d+)\)(?:\s+\(actual time=(\d+(?:\.\d+))..(\d+(?:\.\d+)) rows=(\d+) loops=(\d+))?/
 
   mod.PGPlanParser.prototype =
