@@ -57,11 +57,11 @@
           test(title, function() {
             equal(node.label, 'Subquery Scan "*SELECT*"', "node label");
             equal(node.children.length, 1, "children no.");
-            equal(node.planned.start, 3998159.58, "planned start");
-            equal(node.planned.end, 4017423.33, "planned end");
+            equal(node.planned.startup, 3998159.58, "planned start");
+            equal(node.planned.total, 4017423.33, "planned end");
             equal(node.planned.rows, 19757, "planned rows");
-            equal(node.executed.start, 2252714.704, "executed start");
-            equal(node.executed.end, 2291343.377, "executed end");
+            equal(node.executed.startup, 2252714.704, "executed start");
+            equal(node.executed.total, 2291343.377, "executed end");
             equal(node.executed.rows, 9629, "executed rows");
           });
         };
