@@ -122,8 +122,8 @@ planview = {};
       var match = re_timing.exec(timing);
       if (!match) { throw "bad timing string: " + timing; }
       node.planned = {
-        start: parseFloat(match[2]),
-        end: parseFloat(match[3]),
+        startup: parseFloat(match[2]),
+        total: parseFloat(match[3]),
         rows: parseInt(match[4]),
       }
       node.details.push("Planned: " + match[1]);
@@ -131,8 +131,8 @@ planview = {};
       if (match[7]) {
         var detail = match[6];
         node.executed = {
-          start: parseFloat(match[7]),
-          end: parseFloat(match[8]),
+          startup: parseFloat(match[7]),
+          total: parseFloat(match[8]),
           rows: parseInt(match[9]),
         };
         if (node.hasBadRows(node)) {
@@ -147,7 +147,6 @@ planview = {};
       line = mod.lstrip(line);
       this.topNode().addDetail(line);
     },
-
 
     empty: function()
     {
@@ -203,6 +202,12 @@ planview = {};
       var rows_executed = this.executed.rows;
       return rows_executed > rows_planned * 2 || rows_executed < rows_planned * 0.5;
     },
+
+    /* Return the start and end times for the node 
+     * TODO: the result is wrong for repeated nested loops */
+    getActiveRange: function(dataset) {
+      return [this[dataset].startup, this[dataset].total];
+    },
   }
 
   mod.TimelineRenderer = function(node, target)
@@ -230,8 +235,10 @@ planview = {};
 
       this._svg.svg(function (svg) {
         self._iterNode(function (node, y) {
-          var bar_left = self._p2x(self._data(node).start);
-          var bar_right = self._p2x(self._data(node).end);
+          var bar_left, bar_right;
+          var range = self._getNodeRange(node);
+          bar_left = self._p2x(range[0]);
+          bar_right = self._p2x(range[1]);
           if (bar_right < 2 + bar_left) { bar_right = 2 + bar_left; }
           var bar_width = bar_right - bar_left;
 
@@ -254,7 +261,7 @@ planview = {};
 
             // Check if the child is sequential or parallel to the parent
             var start_point, color;
-            if (self._data(node).start < self._data(child).end) {
+            if (self._getNodeRange(node)[0] < self._getNodeRange(child)[1]) {
               start_point = self._data(child).start_point;
               color = '#0c0';
             } else {
@@ -281,10 +288,12 @@ planview = {};
                 'font-size': '80%',
                 'class': self._getNodeId(node),};
 
-          if ((self._data(node).end - self._data(node).start) 
-              > 0.4 * self._getChartWidth()) {
+          var start, end, width;
+          [start, end] = self._getNodeRange(node);
+          width = self._getChartWidth();
+          if ((end - start) > 0.4 * width) {
             label_x = self._data(node).start_point[0] + self.label_offset;
-          } else if (self._data(node).end < 0.5 * self._getChartWidth()) {
+          } else if (end < 0.5 * width) {
             label_x = self._data(node).end_point[0] + self.label_offset;
           } else {
             label_x = self._data(node).start_point[0] - self.label_offset;
@@ -315,9 +324,14 @@ planview = {};
 
     /* Return the total width of the chart in data units. */
     _getChartWidth: function() {
-      var tot_width = this._data(this.node).end; // in data unit
+      var tot_width = this._getNodeRange(this.node)[1]; // in data unit
       if (!tot_width) throw "no plan time found";
       return tot_width;
+    },
+
+    /* Return start and end times of a node */
+    _getNodeRange: function(node) {
+      return node.getActiveRange(this.dataset);
     },
 
     /* Create the chart div and configure the scale and other amenities. 
