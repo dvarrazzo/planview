@@ -198,6 +198,12 @@ planview = {};
       this.children.push(s);
     },
 
+    getLabel: function(dataset)
+    {
+      var repeats = this[dataset]._repeats;
+      return (((repeats && repeats > 1) ? "(" + repeats + "x) " : '') + this.label);
+    },
+
     hasBadRows: function() {
       if (null === this.executed) { return false; }
       var rows_planned = this.planned.rows;
@@ -207,8 +213,34 @@ planview = {};
 
     /* Return the start and end times for the node 
      * TODO: the result is wrong for repeated nested loops */
-    getActiveRange: function(dataset) {
-      return [this[dataset].startup, this[dataset].total];
+    getActiveRange: function(dataset, parent) {
+      var data = this[dataset];
+      var start = data.startup;
+      var end = data.total;
+
+      /* Correctly multiply and shift nested node in executed time 
+       * TODO: the isNesting() test probably needs wider testing. */
+      // In a nested loop, the repeated node is the second child
+      if (parent && parent._isNesting() && this === parent.children[1]) {
+        var bro = parent.children[0];
+        var offset = bro[dataset].startup;
+        if (dataset === 'executed') {
+          data._repeats = data.loops;
+        } else { // dataset == 'planned'
+          // TODO: not sure about that.
+          data._repeats = bro[dataset].rows;
+        }
+        end *= data._repeats;
+        start += offset;
+        end += offset;
+      }
+      return [start, end];
+    },
+
+    /* Return true if the node representing a nesting operation.
+     * In such operations the 2nd child can be repeated many times. */
+    _isNesting: function() {
+      return (0 == this.label.search('Nested'));
     },
   }
 
@@ -228,7 +260,7 @@ planview = {};
     curve_control_length: 40,
 
     /* Render a chart from a dataset on `node` to `target`. */
-    render: function(dataset)
+    render: function()
     {
       this._makeChart();
 
@@ -236,9 +268,9 @@ planview = {};
       var self = this;
 
       this._svg.svg(function (svg) {
-        self._iterNode(function (node, y) {
+        self._iterNode(function (node, y, parent) {
           var bar_left, bar_right;
-          var range = self._getNodeRange(node);
+          var range = self._getNodeRange(node, parent);
           bar_left = self._p2x(range[0]);
           bar_right = self._p2x(range[1]);
           if (bar_right < 2 + bar_left) { bar_right = 2 + bar_left; }
@@ -254,7 +286,7 @@ planview = {};
           self._data(node).end_point = [bar_right, y + 0.5 * self.bar_height];
         });
 
-        self._iterNode(function (node, y) {
+        self._iterNode(function (node, y, parent) {
           // Plot the curves to the child nodes (already drawn)
           $.each(node.children, function (i, child)
           {
@@ -263,7 +295,7 @@ planview = {};
 
             // Check if the child is sequential or parallel to the parent
             var start_point, color;
-            if (self._getNodeRange(node)[0] < self._getNodeRange(child)[1]) {
+            if (self._getNodeRange(node, parent)[0] < self._getNodeRange(child, node)[1]) {
               start_point = self._data(child).start_point;
               color = '#0c0';
             } else {
@@ -282,7 +314,7 @@ planview = {};
           });
         });
 
-        self._iterNode(function (node, y) {
+        self._iterNode(function (node, y, parent) {
           // Find the best point to put the label (on, before, after the bar)
           var label_x,
               label_y = y + self.bar_height - 5,
@@ -291,7 +323,7 @@ planview = {};
                 'class': self._getNodeId(node),};
 
           var start, end, width;
-          [start, end] = self._getNodeRange(node);
+          [start, end] = self._getNodeRange(node, parent);
           width = self._getChartWidth();
           if ((end - start) > 0.4 * width) {
             label_x = self._data(node).start_point[0] + self.label_offset;
@@ -302,7 +334,7 @@ planview = {};
             label_attr['text-anchor'] = 'end';
           }
 
-          svg.text(label_x, label_y, node.label, label_attr);
+          svg.text(label_x, label_y, node.getLabel(self.dataset), label_attr);
         });
 
         self._iterNode(function (node, y) {
@@ -332,8 +364,8 @@ planview = {};
     },
 
     /* Return start and end times of a node */
-    _getNodeRange: function(node) {
-      return node.getActiveRange(this.dataset);
+    _getNodeRange: function(node, parent) {
+      return node.getActiveRange(this.dataset, parent);
     },
 
     /* Create the chart div and configure the scale and other amenities. 
@@ -397,9 +429,9 @@ planview = {};
     _iterNode: function(f)
     {
       var self = this;
-      mod.walkDepthFirst(this.node, 0, function(node, y) {
+      mod.walkDepthFirst(this.node, 0, function(node, y, parent) {
         if (null === self._data(node)) { return y; } // never exec'd node
-        f(node, y);
+        f(node, y, parent);
         return y + self.bar_height;
       });
     },
@@ -411,12 +443,12 @@ planview = {};
     return s.replace(/^\s*/, "");
   }
 
-  mod.walkDepthFirst = function(tree, acc, f)
+  mod.walkDepthFirst = function(tree, acc, f, parent)
   {
     $.each(tree.children, function (i, child) {
-      acc = mod.walkDepthFirst(child, acc, f);
+      acc = mod.walkDepthFirst(child, acc, f, tree);
     });
-    return f(tree, acc);
+    return f(tree, acc, parent);
   }
 
   mod.countNodes = function(tree)
