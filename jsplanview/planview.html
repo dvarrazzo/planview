@@ -34,7 +34,7 @@
         $('#input-txt').tooltip();
 
         $('#demo-btn').tooltip().click(function() {
-          $('#input-txt').val($.trim($('#demo').text()));
+          $('#input-txt').load('/test/data/plan1.txt');
         });
 
         $('#timeline-btn').tooltip().click(function() {
@@ -52,30 +52,6 @@
     </script>
   </head>
   <body>
-    <div id="demo" style="display: none;">
-Subquery Scan "*SELECT*"  (cost=3998159.58..4017423.33 rows=19757 width=1688) (actual time=2252714.704..2291343.377 rows=9629 loops=1)
-  -&gt;  GroupAggregate  (cost=3998159.58..4012977.85 rows=19757 width=85) (actual time=2252714.678..2290892.551 rows=9629 loops=1)
-        -&gt;  Sort  (cost=3998159.58..3998653.52 rows=19757 width=85) (actual time=2252684.805..2284428.488 rows=158017 loops=1)
-              Sort Key: e.event_date, e.home_id, e.away_id, a.kudos_from, a.kudos_to, a.system, a.username, t.ccy_code
-              Sort Method:  external merge  Disk: 171328kB
-              -&gt;  Hash Join  (cost=218982.50..3971323.65 rows=19757 width=85) (actual time=159931.273..2203014.755 rows=158017 loops=1)
-                    Hash Cond: (t.account_id = a.id)
-                    -&gt;  Hash Join  (cost=218671.23..3968048.72 rows=19757 width=59) (actual time=159926.340..2200570.261 rows=158017 loops=1)
-                          Hash Cond: (t.group_id = g.id)
-                          -&gt;  Hash Join  (cost=939.39..3716182.31 rows=19757 width=52) (actual time=3364.245..1968620.673 rows=158017 loops=1)
-                                Hash Cond: (t.team_event_id = e.id)
-                                -&gt;  Seq Scan on tickets t  (cost=0.00..3653847.12 rows=679086 width=44) (actual time=652.717..1951066.096 rows=2189306 loops=1)
-                                      Filter: (is_settled AND ((status)::text = 'done'::text))
-                                -&gt;  Hash  (cost=874.00..874.00 rows=5231 width=16) (actual time=1068.332..1068.332 rows=6603 loops=1)
-                                      -&gt;  Index Scan using ifbevent_x4 on team_event e  (cost=0.00..874.00 rows=5231 width=16) (actual time=136.018..1063.224 rows=6603 loops=1)
-                                            Index Cond: ((event_date &gt;= '2010-01-16 00:00:00'::timestamp without time zone) AND (event_date &lt;= '2010-02-15 00:00:00'::timestamp without time zone))
-                          -&gt;  Hash  (cost=123143.04..123143.04 rows=5441504 width=15) (actual time=149712.458..149712.458 rows=5441504 loops=1)
-                                -&gt;  Seq Scan on groups g  (cost=0.00..123143.04 rows=5441504 width=15) (actual time=0.018..144001.818 rows=5441504 loops=1)
-                    -&gt;  Hash  (cost=285.01..285.01 rows=2101 width=34) (actual time=4.912..4.912 rows=2101 loops=1)
-                          -&gt;  Seq Scan on accounts a  (cost=0.00..285.01 rows=2101 width=34) (actual time=0.012..3.144 rows=2101 loops=1)
-                                Filter: (kudos_to IS NOT NULL)
-    </div>
-
     <h2>PostgreSQL query plan visualizer</h2>
     <p>Display the timeline of a query execution.</p>
     <p>This is a client-side tool: no data is sent to the server.</p>
