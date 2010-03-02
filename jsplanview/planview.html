@@ -1,3 +1,5 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
 <!--
  * planview - Query Plan Visualizer
  * Copyright (C) 2010  Daniele Varrazzo
@@ -20,12 +22,13 @@
     <title>Query Plan Visualizer</title>
     <link rel="stylesheet" href="planview.css" type="text/css" media="all" />
     <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/themes/ui-lightness/jquery-ui.css" type="text/css" media="all" />
-    <script language="javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
-    <script language="javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.js"></script>
-    <script language="javascript" src="jquery.svg.js"></script>
-    <script language="javascript" src="jquery.tooltip.js"></script>
-    <script language="javascript" src="planview.js"></script>
-    <script language="javascript">
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="jquery.svg.js"></script>
+    <script type="text/javascript" src="jquery.tooltip.js"></script>
+    <script type="text/javascript" src="planview.js"></script>
+    <script type="text/javascript">
+      <!--
       $(document).ready(function()
       {
         $('#input-txt').tooltip();
@@ -45,6 +48,7 @@
           }
         });
       });
+      -->
     </script>
   </head>
   <body>
@@ -78,8 +82,8 @@ Subquery Scan "*SELECT*"  (cost=3998159.58..4017423.33 rows=19757 width=1688) (a
 
     <textarea id="input-txt" cols="120" rows="15" title="Enter the result of an EXPLAIN or EXPLAIN ANALYZE statement."></textarea>
     <br/>
-    <input id="timeline-btn" type="button" value="Timeline" title="Generate the plan chart." />
-    <input id="demo-btn" type="button" value="Demo" title="Insert an example plan in the input box." />
+    <button id="timeline-btn" value="Timeline" title="Generate the plan chart.">Timeline</button>
+    <button id="demo-btn" title="Insert an example plan in the input box.">Demo</button>
     <div id="output-area" style="display: none"></div>
 
     <div class="copyright">
