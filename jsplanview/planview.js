@@ -125,6 +125,7 @@ planview = {};
         startup: parseFloat(match[2]),
         total: parseFloat(match[3]),
         rows: parseInt(match[4]),
+        width: parseInt(match[5]),
       }
       node.details.push("Planned: " + match[1]);
 
@@ -134,6 +135,7 @@ planview = {};
           startup: parseFloat(match[7]),
           total: parseFloat(match[8]),
           rows: parseInt(match[9]),
+          loops: parseInt(match[10]),
         };
         if (node.hasBadRows(node)) {
           detail = detail.replace(/(rows=\d+)/, '<strong class="bad">$1</strong>');
