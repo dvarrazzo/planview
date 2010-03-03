@@ -3,3 +3,5 @@
 \.pyc$
 \.orig$
 \.rej$
+^index\.yaml$
+^google_appengine$
