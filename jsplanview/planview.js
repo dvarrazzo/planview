@@ -46,11 +46,11 @@ planview = {};
     }
 
     var node = planview.parsePlan(plan);
-    tgt.append($("<h2>planned</h2>"));
+    tgt.append($("<h3>planned</h3>"));
     planview.renderTimeline(node, tgt, "planned");
 
     if (node.executed) {
-      tgt.append($("<h2>executed</h2>"));
+      tgt.append($("<h3>executed</h3>"));
       planview.renderTimeline(node, tgt, "executed");
     }
   }

@@ -26,6 +26,12 @@ h2 {
   margin-bottom: 0.25em;
 }
 
+h3 {
+  margin-top: 0.5em;
+  margin-bottom: 0.25em;
+  margin-left: 1em;
+}
+
 p {
   font-size: small;
   margin-top: 0;
