@@ -3,5 +3,5 @@
 \.pyc$
 \.orig$
 \.rej$
-^index\.yaml$
+^approot/index\.yaml$
 ^google_appengine$
