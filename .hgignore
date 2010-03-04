@@ -4,8 +4,10 @@
 \.orig$
 \.rej$
 ^bak\.
+^bin
 ^lib
 ^approot/index\.yaml$
 ^google_appengine$
+^dbplanview/\.google_appengine
 ^lib/django
 ^dbplanview/index\.yaml
