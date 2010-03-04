@@ -3,5 +3,9 @@
 \.pyc$
 \.orig$
 \.rej$
+^bak\.
+^lib
 ^approot/index\.yaml$
 ^google_appengine$
+^lib/django
+^dbplanview/index\.yaml

@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Add customized libraries to the pythonpath
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + '/../lib')
 
 from appengine_django import InstallAppengineHelperForDjango
 InstallAppengineHelperForDjango()

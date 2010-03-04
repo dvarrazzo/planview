@@ -18,6 +18,8 @@ urlpatterns = patterns('',
     # Example:
     # (r'^foo/', include('foo.urls')),
 
+    (r'', include('jsplanview.urls')),
+
     # Uncomment this for admin:
 #     (r'^admin/', include('django.contrib.admin.urls')),
 )
