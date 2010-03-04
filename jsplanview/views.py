@@ -14,3 +14,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
+from django.http import HttpResponse
+
+def index(request,
+    fn = os.path.dirname(os.path.abspath(__file__)) + "/static/index.html"):
+    """TODO: isn't there a way to do this using static serve?
+    Probably no: there are better ways to serve static files than django.
+    """
+    return HttpResponse(open(fn).read())
+
+def test_django(request):
+    import django
+    return HttpResponse("Django version: %r" % (django.VERSION,),
+        mimetype="text/plain")
+
