@@ -79,10 +79,10 @@ planview = {};
         }
       }
 
-      var node;
-      var level;
       if (this.nodeStart(line)) {
-        [node, level] = this.makeNode(line);
+        var pair = this.makeNode(line);
+        var node = pair[0];
+        var level = pair[1];
 
         while (!this.empty() && this.topLevel() >= level) {
           this.pop();
@@ -322,9 +322,10 @@ planview = {};
                 'font-size': '80%',
                 'class': self._getNodeId(node),};
 
-          var start, end, width;
-          [start, end] = self._getNodeRange(node, parent);
-          width = self._getChartWidth();
+          var pair = self._getNodeRange(node, parent);
+          var start = pair[0];
+          var end = pair[1];
+          var width = self._getChartWidth();
           if ((end - start) > 0.4 * width) {
             label_x = self._data(node).start_point[0] + self.label_offset;
           } else if (end < 0.5 * width) {
