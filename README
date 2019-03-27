@@ -1,1 +1,17 @@
 A set of tools to display and analyze database query planning and execution.
+
+---
+
+The JS bit was up and running on dbplanview.com, which I didn't have interest
+to maintain anymore. The appengine stuff was some grand plan I never really
+threw time into.
+
+This project is old technology (no parser for the json plan format, no support
+for CTEs, 10-years old web technology at the time of writing this) and
+virtually unchanged code since 2010.  But someone used the tool and kindly
+asked if I had plans to open source it.  So here it is. Maybe someone else
+wants to maintain it?
+
+Have fun.
+
+-- Daniele
